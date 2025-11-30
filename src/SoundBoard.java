@@ -55,41 +55,29 @@ public class SoundBoard extends Application {
 
         boardSelect = new ComboBox<>();
         boardSelect.getItems().addAll(boards.keySet());
-
-        // Set the currently selected board
+        boardSelect.getSelectionModel().select(currentBoard); // ensure correct selection
         boardSelect.setValue(currentBoard);
 
-        // Styling for dark theme and readable selected text
-        // Keep the main ComboBox styling simple here:
+        // Styling for dark theme
         boardSelect.setStyle(
-                "-fx-background-color: #333;" + // dropdown button background
+                "-fx-background-color: #333;" +
                         "-fx-font-family: 'Segoe UI';" +
                         "-fx-font-size: 14px;"
         );
 
-        // Use Platform.runLater to apply styles to internal components (.label)
-        // AFTER the scene is set up, preventing the NullPointerException.
         javafx.application.Platform.runLater(() -> {
-            // Find the internal Label component that displays the selected value
             javafx.scene.Node label = boardSelect.lookup(".label");
-            if (label != null) {
-                // Ensure the selected text is visible (white)
-                label.setStyle("-fx-text-fill: white;");
-            }
-            // Optional: Ensure the dropdown arrow button is also styled
+            if (label != null) label.setStyle("-fx-text-fill: white;");
             javafx.scene.Node arrowButton = boardSelect.lookup(".arrow-button");
-            if (arrowButton != null) {
-                arrowButton.setStyle("-fx-background-color: #333;");
-            }
+            if (arrowButton != null) arrowButton.setStyle("-fx-background-color: #333;");
         });
 
         // Update board when selection changes
         boardSelect.setOnAction(e -> {
             String selected = boardSelect.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                switchBoard(selected);
-            }
+            if (selected != null) switchBoard(selected);
         });
+
         HBox top = new HBox(12, title, boardSelect);
         top.setPadding(new Insets(10));
         top.setAlignment(Pos.CENTER_LEFT);
@@ -249,9 +237,16 @@ public class SoundBoard extends Application {
     }
 
     private void switchBoard(String boardName) {
+        if (boardName == null || !boards.containsKey(boardName)) return;
+
         currentBoard = boardName;
-        // Update ComboBox display to show the newly selected board.
-        boardSelect.setValue(boardName);
+
+        // Update ComboBox to show current board
+        if (boardSelect != null) {
+            boardSelect.getSelectionModel().select(currentBoard);
+            boardSelect.setValue(currentBoard);
+        }
+
         loadPlayGrid();
         loadSoundsGrid();
     }
@@ -434,71 +429,110 @@ public class SoundBoard extends Application {
     // BOARDS VIEW CONTENT
     // ----------------------------
     private StackPane boardsViewContent() {
-        VBox content = new VBox(10);
+
+        VBox content = new VBox(20);
         content.setPadding(new Insets(20));
-        content.setStyle("-fx-background-color: #D3D3D3;"); // light gray background
+        content.setStyle("-fx-background-color: #181818;");
 
         Label header = new Label("Boards");
-        header.setStyle("-fx-text-fill: black; -fx-font-size: 24px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
+        header.setStyle("-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
 
-        ListView<String> listView = new ListView<>();
-        listView.getItems().addAll(boards.keySet());
-        listView.setStyle("-fx-background-color: #D3D3D3; -fx-control-inner-background: #D3D3D3; -fx-font-family: 'Segoe UI';");
+        FlowPane bubbleContainer = new FlowPane();
+        bubbleContainer.setHgap(15);
+        bubbleContainer.setVgap(15);
+        bubbleContainer.setPadding(new Insets(10));
+        bubbleContainer.setStyle("-fx-background-color: #181818;");
+        bubbleContainer.setPrefWrapLength(800);
 
-        // --- MODIFICATION 3: Ensure the current board is selected in the ListView ---
-        listView.getSelectionModel().select(currentBoard);
-        // --------------------------------------------------------------------------
+        // Populate bubbles
+        refreshBoardBubbles(bubbleContainer);
 
+        // --- New Board Field ---
         TextField newBoardField = new TextField();
         newBoardField.setPromptText("New board name");
-        newBoardField.setStyle("-fx-font-family: 'Segoe UI';");
+        newBoardField.setStyle(
+                "-fx-background-color: #222;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: #777;" +
+                        "-fx-font-family: 'Segoe UI';"
+        );
 
-        Button addBoardBtn = new Button("Add Board");
-        addBoardBtn.setStyle("-fx-font-family: 'Segoe UI';");
-        addBoardBtn.setOnAction(e -> {
+        Button addBtn = new Button("Add");
+        addBtn.setStyle(
+                "-fx-background-color: #333;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 8;"
+        );
+        addBtn.setOnAction(e -> {
             String name = newBoardField.getText().trim();
             if (!name.isEmpty() && !boards.containsKey(name)) {
                 boards.put(name, new ArrayList<>());
-                listView.getItems().add(name);
+                boardSelect.getItems().add(name);
                 saveBoards();
+                refreshBoardBubbles(bubbleContainer);
                 newBoardField.clear();
-                boardSelect.getItems().add(name); // update top ComboBox
             }
         });
 
-        Button deleteBoardBtn = new Button("Delete Selected Board");
-        deleteBoardBtn.setStyle("-fx-font-family: 'Segoe UI';");
-        deleteBoardBtn.setOnAction(e -> {
-            String selected = listView.getSelectionModel().getSelectedItem();
-            if (selected != null && !selected.equals("Default Board")) {
-                boards.remove(selected);
-                listView.getItems().remove(selected);
-                boardSelect.getItems().remove(selected);
-
-                // Switch to another board if the current was deleted
-                if (currentBoard.equals(selected)) {
-                    currentBoard = boards.keySet().iterator().next(); // pick first board
-                    switchBoard(currentBoard); // Call switchBoard to update ComboBox and grids
-                }
-
-                saveBoards();
-            }
-        });
-
-        HBox addBox = new HBox(10, newBoardField, addBoardBtn, deleteBoardBtn);
+        HBox addBox = new HBox(10, newBoardField, addBtn);
         addBox.setAlignment(Pos.CENTER_LEFT);
 
-        // Update top ComboBox and switch board when a board is clicked in the list
-        listView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && !newVal.equals(currentBoard)) {
-                switchBoard(newVal);
-            }
-        });
-
-        content.getChildren().addAll(header, listView, addBox);
+        content.getChildren().addAll(header, bubbleContainer, addBox);
 
         return new StackPane(content);
     }
+    // ----------------------------
+    // REFRESH BOARD BUBBLES
+    // ----------------------------
+    private void refreshBoardBubbles(FlowPane container) {
+        container.getChildren().clear();
+
+        for (String boardName : boards.keySet()) {
+            HBox bubble = new HBox();
+            bubble.setAlignment(Pos.CENTER_LEFT);
+            bubble.setSpacing(10);
+            bubble.setPadding(new Insets(10, 16, 10, 16));
+            bubble.setStyle(
+                    "-fx-background-color: " + (boardName.equals(currentBoard) ? "#333" : "#222") + ";" +
+                            "-fx-background-radius: 20;" +
+                            "-fx-border-radius: 20;" +
+                            "-fx-border-color: #555;" +
+                            "-fx-border-width: 2;"
+            );
+
+            Label label = new Label(boardName);
+            label.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-family: 'Segoe UI';");
+
+            Button del = new Button("✖");
+            del.setStyle("-fx-background-color: transparent; -fx-text-fill: #E57373; -fx-font-size: 16;");
+            del.setOnAction(e -> {
+                if (!boardName.equals("Default Board")) {
+                    boards.remove(boardName);
+                    boardSelect.getItems().remove(boardName);
+
+                    if (currentBoard.equals(boardName)) {
+                        currentBoard = boards.keySet().iterator().next();
+                        switchBoard(currentBoard);
+                    }
+                    saveBoards();
+                    refreshBoardBubbles(container);
+                }
+            });
+
+            bubble.setOnMouseClicked(e -> {
+                if (!boardName.equals(currentBoard)) {
+                    switchBoard(boardName); // updates ComboBox as well
+                    refreshBoardBubbles(container);
+                }
+            });
+
+            bubble.getChildren().addAll(label, del);
+            container.getChildren().add(bubble);
+        }
+    }
+
+
 
     public static void main(String[] args) {
         launch();
