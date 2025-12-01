@@ -3,7 +3,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseButton; // New Import for MouseButton
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
@@ -39,10 +39,9 @@ public class SoundBoard extends Application {
 
     private ComboBox<String> boardSelect;
 
-    // Map to keep track of currently playing/looping AudioClips to stop them
     private Map<AudioClip, String> playingClips = new HashMap<>();
-    // Map to track the looping state of each sound tile (Added for this request)
     private Map<AudioClip, Boolean> loopState = new HashMap<>();
+
     @Override
     public void start(Stage stage) {
         loadBoards();
@@ -51,19 +50,13 @@ public class SoundBoard extends Application {
         // TOP BAR
         // -------------------------------------
         Label title = new Label("Soundboards");
-        title.setStyle("-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
+        title.setStyle("-fx-text-fill: #E0E0E0; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
 
         boardSelect = new ComboBox<>();
         boardSelect.getItems().addAll(boards.keySet());
-        boardSelect.getSelectionModel().select(currentBoard); // ensure correct selection
+        boardSelect.getSelectionModel().select(currentBoard);
         boardSelect.setValue(currentBoard);
-
-        // Styling for dark theme
-        boardSelect.setStyle(
-                "-fx-background-color: #333;" +
-                        "-fx-font-family: 'Segoe UI';" +
-                        "-fx-font-size: 14px;"
-        );
+        boardSelect.setStyle("-fx-background-color: #333; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px;");
 
         javafx.application.Platform.runLater(() -> {
             javafx.scene.Node label = boardSelect.lookup(".label");
@@ -72,7 +65,6 @@ public class SoundBoard extends Application {
             if (arrowButton != null) arrowButton.setStyle("-fx-background-color: #333;");
         });
 
-        // Update board when selection changes
         boardSelect.setOnAction(e -> {
             String selected = boardSelect.getSelectionModel().getSelectedItem();
             if (selected != null) switchBoard(selected);
@@ -81,6 +73,7 @@ public class SoundBoard extends Application {
         HBox top = new HBox(12, title, boardSelect);
         top.setPadding(new Insets(10));
         top.setAlignment(Pos.CENTER_LEFT);
+        top.setStyle("-fx-background-color: linear-gradient(to right, #121212, #1A1A1A);");
 
         // -------------------------------------
         // PLAY VIEW
@@ -89,18 +82,45 @@ public class SoundBoard extends Application {
         playGrid.setHgap(20);
         playGrid.setVgap(20);
         playGrid.setPadding(new Insets(20));
-        playGrid.setStyle("-fx-background-color: #181818;");
+        playGrid.setStyle("-fx-background-color: #121212;");
 
         loadPlayGrid();
 
         Button addSoundBtn = new Button("+ Add Sound");
-        addSoundBtn.setStyle("-fx-background-color: #444; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-family: 'Segoe UI';");
+        addSoundBtn.setStyle(
+                "-fx-background-color: #333;" +
+                        "-fx-text-fill: #E0E0E0;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 2);"
+        );
         addSoundBtn.setOnAction(e -> addNewSound());
+
+        addSoundBtn.setOnMouseEntered(e -> addSoundBtn.setStyle(
+                "-fx-background-color: #444;" +
+                        "-fx-text-fill: #B388FF;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 6, 0, 0, 3);"
+        ));
+        addSoundBtn.setOnMouseExited(e -> addSoundBtn.setStyle(
+                "-fx-background-color: #333;" +
+                        "-fx-text-fill: #E0E0E0;" +
+                        "-fx-font-size: 16px;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 2);"
+        ));
 
         VBox playContent = new VBox(10, addSoundBtn, playGrid);
         playContent.setPadding(new Insets(10));
         playView = new StackPane(playContent);
-        playView.setStyle("-fx-background-color: #181818;");
+        playView.setStyle("-fx-background-color: #121212;");
 
         // -------------------------------------
         // SOUNDS VIEW
@@ -109,12 +129,12 @@ public class SoundBoard extends Application {
         soundsGrid.setHgap(20);
         soundsGrid.setVgap(20);
         soundsGrid.setPadding(new Insets(20));
-        soundsGrid.setStyle("-fx-background-color: #181818;");
+        soundsGrid.setStyle("-fx-background-color: #121212;");
 
         loadSoundsGrid();
 
         soundsView = new StackPane(soundsGrid);
-        soundsView.setStyle("-fx-background-color: #181818;");
+        soundsView.setStyle("-fx-background-color: #121212;");
 
         // -------------------------------------
         // BOARDS VIEW
@@ -126,7 +146,7 @@ public class SoundBoard extends Application {
         // -------------------------------------
         root = new BorderPane();
         root.setTop(top);
-        root.setCenter(playView); // default
+        root.setCenter(playView);
 
         // -------------------------------------
         // BOTTOM NAV
@@ -143,7 +163,7 @@ public class SoundBoard extends Application {
         );
 
         root.setBottom(nav);
-        root.setStyle("-fx-background-color: #181818;");
+        root.setStyle("-fx-background-color: #121212;");
 
         Scene scene = new Scene(root, 900, 700, Color.BLACK);
         stage.setScene(scene);
@@ -152,7 +172,7 @@ public class SoundBoard extends Application {
     }
 
     // ----------------------------
-    // NAVIGATION BUTTONS
+    // NAV BUTTONS
     // ----------------------------
     private VBox navButton(String text, StackPane targetView) {
         Label lbl = new Label(text);
@@ -240,8 +260,6 @@ public class SoundBoard extends Application {
         if (boardName == null || !boards.containsKey(boardName)) return;
 
         currentBoard = boardName;
-
-        // Update ComboBox to show current board
         if (boardSelect != null) {
             boardSelect.getSelectionModel().select(currentBoard);
             boardSelect.setValue(currentBoard);
@@ -284,12 +302,10 @@ public class SoundBoard extends Application {
         AudioClip clip = new AudioClip(file.toURI().toString());
         Media media = new Media(file.toURI().toString());
         MediaPlayer mp = new MediaPlayer(media);
-
-        // Initialize loop state for this clip (false = not looping)
         loopState.put(clip, false);
 
         Label endTime = new Label("...");
-        endTime.setStyle("-fx-text-fill: white; -fx-font-family: 'Segoe UI';");
+        endTime.setStyle("-fx-text-fill: #E0E0E0; -fx-font-family: 'Segoe UI';");
         mp.setOnReady(() -> {
             double s = media.getDuration().toSeconds();
             endTime.setText(String.format("%.1fs", s));
@@ -303,26 +319,30 @@ public class SoundBoard extends Application {
         card.setSpacing(10);
         card.setPadding(new Insets(12));
         card.setPrefSize(200, 150);
-
         card.setStyle(
-                "-fx-background-color: #222;" +
+                "-fx-background-color: #1E1E1E;" +
                         "-fx-border-color: " + border + ";" +
                         "-fx-border-width: 3;" +
                         "-fx-background-radius: 12;" +
                         "-fx-border-radius: 12;"
         );
 
+        // Hover animation
+        card.setOnMouseEntered(e -> card.setScaleX(1.05));
+        card.setOnMouseEntered(e -> card.setScaleY(1.05));
+        card.setOnMouseExited(e -> card.setScaleX(1));
+        card.setOnMouseExited(e -> card.setScaleY(1));
+
         Label start = new Label("0.0s");
-        start.setStyle("-fx-text-fill: white; -fx-font-family: 'Segoe UI';");
+        start.setStyle("-fx-text-fill: #E0E0E0; -fx-font-family: 'Segoe UI';");
 
         HBox timeBar = new HBox(start, new Region(), endTime);
         HBox.setHgrow(timeBar.getChildren().get(1), Priority.ALWAYS);
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
+        nameLabel.setStyle("-fx-text-fill: #E0E0E0; -fx-font-size: 18px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
 
         Button playBtn = icon("▶", () -> {
-            // Stop any existing loop first
             if(loopState.get(clip)) {
                 clip.stop();
                 clip.setCycleCount(1);
@@ -332,43 +352,33 @@ public class SoundBoard extends Application {
             clip.play();
         });
 
-        // --- MODIFICATION: Loop Button Toggle Logic ---
         Button loopBtn = icon("↻", () -> {
             boolean isLooping = loopState.get(clip);
-
             if (isLooping) {
-                // Second click: Stop the loop and reset state
                 clip.stop();
                 clip.setCycleCount(1);
                 loopState.put(clip, false);
                 playingClips.remove(clip);
-                System.out.println("Loop stopped for: " + name);
             } else {
-                // First click: Start the loop
                 clip.setCycleCount(AudioClip.INDEFINITE);
                 clip.play();
                 loopState.put(clip, true);
-                playingClips.put(clip, name); // Track looping clip
-                System.out.println("Loop started for: " + name);
+                playingClips.put(clip, name);
             }
         });
-        // ---------------------------------------------
 
-        Button deleteBtn = icon("✖", () -> {
-            // Stop sound before deleting
+        Button deleteBtn = icon("x", () -> {
             clip.stop();
             list.removeIf(obj -> obj.getString("name").equals(name));
             playingClips.remove(clip);
-            loopState.remove(clip); // Remove loop state
+            loopState.remove(clip);
             saveBoards();
             loadPlayGrid();
             loadSoundsGrid();
         });
 
-        // Add double-click handler to stop all clips (Kept from previous request)
         card.setOnMouseClicked(event -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
-                // Stop the specific sound if it's playing/looping
                 if (clip.isPlaying()) {
                     clip.stop();
                     loopState.put(clip, false);
@@ -389,11 +399,37 @@ public class SoundBoard extends Application {
     }
 
     // ----------------------------
-    // ICON BUTTON
+    // ICON BUTTONS
     // ----------------------------
     private Button icon(String text, Runnable action) {
         Button b = new Button(text);
-        b.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 20; -fx-font-family: 'Segoe UI';");
+        b.setStyle(
+                "-fx-background-color: #333;" +
+                        "-fx-text-fill: #E0E0E0;" +
+                        "-fx-font-size: 20;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 2);"
+        );
+        b.setOnMouseEntered(e -> b.setStyle(
+                "-fx-background-color: #444;" +
+                        "-fx-text-fill: #B388FF;" +
+                        "-fx-font-size: 20;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 6, 0, 0, 3);"
+        ));
+        b.setOnMouseExited(e -> b.setStyle(
+                "-fx-background-color: #333;" +
+                        "-fx-text-fill: #E0E0E0;" +
+                        "-fx-font-size: 20;" +
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 50;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 2);"
+        ));
         b.setOnAction(e -> action.run());
         return b;
     }
@@ -426,43 +462,44 @@ public class SoundBoard extends Application {
     }
 
     // ----------------------------
-    // BOARDS VIEW CONTENT
+    // BOARDS VIEW
     // ----------------------------
     private StackPane boardsViewContent() {
-
         VBox content = new VBox(20);
         content.setPadding(new Insets(20));
-        content.setStyle("-fx-background-color: #181818;");
+        content.setStyle("-fx-background-color: #121212;");
 
         Label header = new Label("Boards");
-        header.setStyle("-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
+        header.setStyle("-fx-text-fill: #E0E0E0; -fx-font-size: 26px; -fx-font-weight: bold; -fx-font-family: 'Segoe UI';");
 
         FlowPane bubbleContainer = new FlowPane();
         bubbleContainer.setHgap(15);
         bubbleContainer.setVgap(15);
         bubbleContainer.setPadding(new Insets(10));
-        bubbleContainer.setStyle("-fx-background-color: #181818;");
+        bubbleContainer.setStyle("-fx-background-color: #121212;");
         bubbleContainer.setPrefWrapLength(800);
 
-        // Populate bubbles
         refreshBoardBubbles(bubbleContainer);
 
-        // --- New Board Field ---
         TextField newBoardField = new TextField();
         newBoardField.setPromptText("New board name");
         newBoardField.setStyle(
-                "-fx-background-color: #222;" +
-                        "-fx-text-fill: white;" +
+                "-fx-background-color: #1E1E1E;" +
+                        "-fx-text-fill: #E0E0E0;" +
                         "-fx-prompt-text-fill: #777;" +
-                        "-fx-font-family: 'Segoe UI';"
+                        "-fx-font-family: 'Segoe UI';" +
+                        "-fx-background-radius: 12;" +
+                        "-fx-padding: 6;"
         );
 
         Button addBtn = new Button("Add");
         addBtn.setStyle(
                 "-fx-background-color: #333;" +
-                        "-fx-text-fill: white;" +
+                        "-fx-text-fill: #E0E0E0;" +
                         "-fx-font-family: 'Segoe UI';" +
-                        "-fx-background-radius: 8;"
+                        "-fx-background-radius: 12;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-padding: 6 12;"
         );
         addBtn.setOnAction(e -> {
             String name = newBoardField.getText().trim();
@@ -482,9 +519,7 @@ public class SoundBoard extends Application {
 
         return new StackPane(content);
     }
-    // ----------------------------
-    // REFRESH BOARD BUBBLES
-    // ----------------------------
+
     private void refreshBoardBubbles(FlowPane container) {
         container.getChildren().clear();
 
@@ -498,11 +533,12 @@ public class SoundBoard extends Application {
                             "-fx-background-radius: 20;" +
                             "-fx-border-radius: 20;" +
                             "-fx-border-color: #555;" +
-                            "-fx-border-width: 2;"
+                            "-fx-border-width: 2;" +
+                            "-fx-cursor: hand;"
             );
 
             Label label = new Label(boardName);
-            label.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-family: 'Segoe UI';");
+            label.setStyle("-fx-text-fill: #E0E0E0; -fx-font-size: 16px; -fx-font-family: 'Segoe UI';");
 
             Button del = new Button("✖");
             del.setStyle("-fx-background-color: transparent; -fx-text-fill: #E57373; -fx-font-size: 16;");
@@ -510,7 +546,6 @@ public class SoundBoard extends Application {
                 if (!boardName.equals("Default Board")) {
                     boards.remove(boardName);
                     boardSelect.getItems().remove(boardName);
-
                     if (currentBoard.equals(boardName)) {
                         currentBoard = boards.keySet().iterator().next();
                         switchBoard(currentBoard);
@@ -520,9 +555,17 @@ public class SoundBoard extends Application {
                 }
             });
 
+            bubble.setOnMouseEntered(e -> bubble.setStyle(
+                    "-fx-background-color: #444; -fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: #888; -fx-border-width: 2; -fx-cursor: hand;"
+            ));
+            bubble.setOnMouseExited(e -> bubble.setStyle(
+                    "-fx-background-color: " + (boardName.equals(currentBoard) ? "#333" : "#222") + ";" +
+                            "-fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: #555; -fx-border-width: 2; -fx-cursor: hand;"
+            ));
+
             bubble.setOnMouseClicked(e -> {
                 if (!boardName.equals(currentBoard)) {
-                    switchBoard(boardName); // updates ComboBox as well
+                    switchBoard(boardName);
                     refreshBoardBubbles(container);
                 }
             });
@@ -531,8 +574,6 @@ public class SoundBoard extends Application {
             container.getChildren().add(bubble);
         }
     }
-
-
 
     public static void main(String[] args) {
         launch();
