@@ -15,6 +15,7 @@ import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import javafx.scene.Node;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -56,13 +57,17 @@ public class SoundBoard extends Application {
         boardSelect.getItems().addAll(boards.keySet());
         boardSelect.getSelectionModel().select(currentBoard);
         boardSelect.setValue(currentBoard);
-        boardSelect.setStyle("-fx-background-color: #333; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px;");
-
         javafx.application.Platform.runLater(() -> {
-            javafx.scene.Node label = boardSelect.lookup(".label");
+            boardSelect.getSelectionModel().select(currentBoard);
+            boardSelect.setValue(currentBoard);
+
+            // Style the label (for non-editable ComboBox)
+            Node label = boardSelect.lookup(".combo-box-label");
             if (label != null) label.setStyle("-fx-text-fill: white;");
-            javafx.scene.Node arrowButton = boardSelect.lookup(".arrow-button");
-            if (arrowButton != null) arrowButton.setStyle("-fx-background-color: #333;");
+
+            // Style the arrow button
+            Node arrow = boardSelect.lookup(".arrow-button");
+            if (arrow != null) arrow.setStyle("-fx-background-color: #333;");
         });
 
         boardSelect.setOnAction(e -> {
